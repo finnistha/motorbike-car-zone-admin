@@ -27,7 +27,6 @@ button:disabled{opacity:.55}.msg{margin-top:16px;line-height:1.5;white-space:pre
 <h1>Admin Login</h1>
 <input id="email" type="email" value="devieventscatering@gmail.com" placeholder="Admin email">
 <input id="password" type="password" placeholder="Password">
-<button type="button" id="showPassBtn" style="margin:-4px 0 14px;background:#6b7280">Show password</button>
 <button id="loginBtn">Login</button>
 <div id="msg" class="msg"></div>
 </section>
@@ -47,7 +46,7 @@ button:disabled{opacity:.55}.msg{margin-top:16px;line-height:1.5;white-space:pre
 <script>
 const API_KEY="AIzaSyDHQmPbIsNneQi0Ra553e9F6GXqvfjxMhU";
 const PROJECT="motorbike--car-zone";
-const ADMIN_UID="LiWfRCZw31TZfz3K3jwdlnbOp2c2";
+const ADMIN_UID="LiWfRCZw31TZfz3K3jwdlnBOp2c2";
 let ID_TOKEN="";
 let USER_EMAIL="";
 
@@ -66,11 +65,6 @@ async function fetchTimeout(url,opt={},ms=15000){
  finally{clearTimeout(t)}
 }
 
-$("showPassBtn").onclick=()=>{
- const p=$("password");
- p.type=p.type==="password"?"text":"password";
- $("showPassBtn").textContent=p.type==="password"?"Show password":"Hide password";
-};
 $("loginBtn").onclick=async()=>{
  const email=$("email").value.trim(), password=$("password").value;
  if(!email||!password){show("Enter email and password.");return}
@@ -90,10 +84,11 @@ $("loginBtn").onclick=async()=>{
      }[code]||code;
      throw new Error(friendly);
    }
-   if(data.localId!==ADMIN_UID) throw new Error("Login worked, but this Firebase user is not the Admin account.");
+   if((data.email||email).toLowerCase()!=="devieventscatering@gmail.com")
+     throw new Error("Please use the Admin email: devieventscatering@gmail.com");
    ID_TOKEN=data.idToken;USER_EMAIL=data.email||email;
    $("login").classList.add("hidden");$("dash").classList.remove("hidden");$("welcome").textContent="Signed in as "+USER_EMAIL;
-   await loadVehicles();
+   show("Login successful. Loading Admin dashboard...",true);\n   await loadVehicles();
  }catch(e){show("Login failed:\n"+(e.message||String(e)));}
  finally{$("loginBtn").disabled=false;$("loginBtn").textContent="Login";}
 };
