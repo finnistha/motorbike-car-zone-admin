@@ -125,9 +125,13 @@ async function loadVehicles(){
   const docs=data.documents||[];let p=0,a=0,re=0;
   const arr=docs.map(x=>{const f=x.fields||{},v={};for(const k in f)v[k]=val(f[k]);const status=String(v.status||"pending").toLowerCase();if(status==="approved")a++;else if(status==="rejected")re++;else p++;return{id:x.name.split("/").pop(),v,status};});
   $("pending").textContent=p;$("approved").textContent=a;$("rejected").textContent=re;
-  $("vehicles").innerHTML=arr.length?arr.map(x=>`<div class="item"><span class="badge">${esc(x.status)}</span><h2>${esc(x.v.title||x.v.vehicleName||x.v.name||x.v.brand||"Vehicle")}</h2><div class="detail">${detailsHTML(x.v)}</div><div class="media-title">📷 Photos & 📄 Documents</div>${mediaHTML(x.v)}<details style="margin-top:14px"><summary>Show all Firestore fields</summary><div class="raw">${esc(JSON.stringify(x.v,null,2))}</div></details>${x.status==="pending"?`<div class="actions"><button class="approve" onclick="setStatus('${esc(x.id)}','approved')">Approve</button><button class="reject" onclick="setStatus('${esc(x.id)}','rejected')">Reject</button></div>`:""}</div>`).join(""):"<p>No vehicles found in the vehicles collection.</p>";
+  $("vehicles").innerHTML=arr.length?arr.map(x=>`<div class="item"><span class="badge">${esc(x.status)}</span><h2>${esc(x.v.title||x.v.vehicleName||x.v.name||x.v.brand||"Vehicle")}</h2><div class="detail">${detailsHTML(x.v)}</div><div class="media-title">📷 Photos & 📄 Documents</div>${mediaHTML(x.v)}<details style="margin-top:14px"><summary>Show all Firestore fields</summary><div class="raw">${esc(JSON.stringify(x.v,null,2))}</div></details>${x.status==="pending"?`<div class="actions"><button class="approve" onclick="setStatus('${esc(x.id)}','approved')">Approve</button><button class="reject" onclick="setStatus('${esc(x.id)}','rejected')">Reject</button></div>`:""}${x.status==="approved"?`<div class="actions"><button style="background:#b45309" onclick="removeFromBuyer('${esc(x.id)}')">Remove from Buyer (Sold)</button></div>`:""}</div>`).join(""):"<p>No vehicles found in the vehicles collection.</p>";
  }catch(e){$("vehicles").innerHTML="<p class='err'>Could not load vehicles:<br>"+esc(e.message||String(e))+"</p>";}
 }
+window.removeFromBuyer=async(id)=>{
+ if(!confirm("Mark this vehicle as SOLD and remove it from the Buyer app?")) return;
+ await setStatus(id,"sold");
+};
 window.setStatus=async(id,status)=>{
  try{
   const url=`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/vehicles/${encodeURIComponent(id)}?updateMask.fieldPaths=status&updateMask.fieldPaths=reviewedBy&updateMask.fieldPaths=reviewedAt`;
