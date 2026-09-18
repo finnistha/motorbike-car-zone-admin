@@ -3,163 +3,619 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Motorbike & Car Zone Admin - LOGIN V4</title>
+<meta name="theme-color" content="#5b3cc4">
+<title>MOTORBIKE & CAR ZONE</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f1f3f6;color:#111827}
-header{background:#111827;color:#fff;padding:18px;font-size:22px;font-weight:700}
-.card{max-width:650px;margin:45px auto;background:#fff;border-radius:20px;padding:28px;box-shadow:0 5px 25px #0001}
-h1{font-size:34px;margin:0 0 28px}input{width:100%;padding:18px;margin-bottom:16px;border:1px solid #ccc;border-radius:14px;font-size:17px}
-button{width:100%;padding:17px;border:0;border-radius:14px;background:#111827;color:#fff;font-size:18px}
-button:disabled{opacity:.55}.msg{margin-top:16px;line-height:1.5;white-space:pre-wrap}.err{color:#b91c1c}.ok{color:#15803d}
-.hidden{display:none}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
-.stat{background:#f3f4f6;padding:18px;text-align:center;border-radius:14px}.stat b{display:block;font-size:28px}.stat{width:100%;color:#111827;cursor:pointer}.stat:hover{background:#e5e7eb}
-.item{border:1px solid #ddd;border-radius:14px;padding:15px;margin:12px 0}.actions{display:flex;gap:10px;margin-top:12px}
-.actions button{padding:12px}.approve{background:#15803d}.reject{background:#b91c1c}.logout{background:#6b7280}
-@media(max-width:650px){.card{margin:25px 15px;padding:22px}.stats{grid-template-columns:1fr}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f6fb;color:#202124}
+header{background:linear-gradient(135deg,#5b3cc4,#2878e8);color:#fff;padding:22px 18px 26px;border-radius:0 0 24px 24px}
+.logo{font-size:21px;font-weight:800}.tag{opacity:.9;margin-top:5px;font-size:13px}.location{margin-top:15px;font-size:14px}
+.search{margin-top:13px;background:#fff;border-radius:13px;padding:7px;display:flex;gap:8px;align-items:center}
+.search input{flex:1;border:0;outline:0;font-size:14px;background:transparent;padding:7px}
+main{padding:16px;max-width:700px;margin:auto}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:#fff;border-radius:17px;padding:17px;box-shadow:0 3px 14px #00000010}
+.action{font-weight:800;font-size:17px}.muted{font-size:13px;color:#777;margin-top:5px}
+button{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+.primary{background:#5b3cc4;color:white}.light{background:#eef0ff;color:#4b36a5}
+.danger{background:#ffe9e9;color:#b42318}
+h2{font-size:19px;margin:22px 0 12px}
+.chips{display:flex;gap:8px;overflow:auto}.chip{white-space:nowrap;background:#fff;border:1px solid #ddd;border-radius:20px;padding:9px 13px}
+.vehicle{margin-top:12px}.price{font-size:19px;font-weight:800;margin-top:8px}.spec{font-size:13px;color:#666;margin-top:5px}
+.hidden{display:none}.form{display:grid;gap:10px}
+.form input,.form select,.form textarea{width:100%;padding:13px;border:1px solid #ddd;border-radius:11px;font-size:14px}
+.filebox{background:#fafaff;border:1px dashed #bbb;border-radius:12px;padding:12px}
+.filebox b{display:block;margin-bottom:5px}.filebox small{color:#777}
+.nav{position:sticky;bottom:0;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-around;padding:10px 4px;margin-top:25px}
+.nav button{background:none;color:#555;padding:8px}.badge{display:inline-block;background:#fff1cf;color:#8a5b00;padding:5px 9px;border-radius:12px;font-size:12px;font-weight:700}
+.badge.approved{background:#e8f7ee;color:#137333}.badge.pending{background:#fff1cf;color:#8a5b00}
+#firstLoginGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#5b3cc4,#2878e8)}
+#firstLoginCard{width:100%;max-width:420px;background:#fff;border-radius:22px;padding:26px;box-shadow:0 15px 50px rgba(0,0,0,.25)}
+#firstLoginCard input{width:100%;padding:14px;border:1px solid #ddd;border-radius:12px;font-size:16px;margin-top:8px}
+#firstLoginCard button{width:100%;margin-top:10px}
+#firstLoginStatus{font-size:13px;color:#666;margin-top:10px;min-height:20px}
+#gateRecaptcha{margin-top:12px;min-height:78px}
+#detailsModal{position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;padding:0}
+#detailsCard{width:100%;max-width:700px;max-height:88vh;overflow:auto;background:#fff;border-radius:24px 24px 0 0;padding:22px}
+.detailRow{padding:11px 0;border-bottom:1px solid #eee;font-size:14px}.detailLabel{font-size:12px;color:#777}.detailValue{font-weight:700;margin-top:3px}
+.mediaGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.mediaGrid img{width:100%;height:150px;object-fit:cover;border-radius:10px;border:1px solid #ddd}
+.linkList a{display:block;margin-top:8px;word-break:break-all}
+.progress{font-size:13px;color:#5b3cc4;min-height:18px}
+@media(min-width:700px){#detailsModal{align-items:center;padding:20px}#detailsCard{border-radius:24px}}
 
-.media-title{font-size:18px;font-weight:700;margin:18px 0 8px}.media-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.media{border:1px solid #ddd;border-radius:12px;padding:8px;background:#fafafa}.media img{width:100%;height:170px;object-fit:cover;border-radius:8px}.media a{display:block;padding:10px 4px;word-break:break-word;color:#075985}.raw{font-size:12px;background:#f7f7f7;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-word}.note{font-size:14px;color:#4b5563}.badge{display:inline-block;padding:4px 9px;border-radius:999px;background:#eee;font-size:13px;margin-bottom:8px}@media(max-width:650px){.media-grid{grid-template-columns:1fr}}
+.mainPhotoGallery{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:86px 86px;gap:6px;margin-top:13px;height:178px}
+.mainPhoto{grid-row:1/3;overflow:hidden;border-radius:12px;background:#eef0ff}
+.mainPhoto img,.smallPhoto img{width:100%;height:100%;object-fit:cover;display:block}
+.smallPhoto{overflow:hidden;border-radius:10px;background:#eef0ff}
+.morePhotos{display:flex;align-items:center;justify-content:center;border-radius:10px;background:#333;color:#fff;font-size:22px;font-weight:800}
+@media(max-width:420px){.mainPhotoGallery{height:150px;grid-template-rows:72px 72px}}
 </style>
 </head>
 <body>
-<header>🚗 Motorbike & Car Zone Admin <span style='font-size:12px;opacity:.8'>LOGIN V4</span></header>
 
-<section id="login" class="card">
-<h1>Admin Login</h1>
-<input id="email" type="email" value="devieventscatering@gmail.com" placeholder="Admin email">
-<input id="password" type="password" placeholder="Password">
-<button id="loginBtn">Login</button>
-<button type="button" id="resetBtn" style="margin-top:12px;background:#6b7280">Forgot password / Reset</button>
-<div id="msg" class="msg"></div>
+<div id="firstLoginGate">
+  <div id="firstLoginCard">
+    <div style="text-align:center;font-size:48px">🚗 🏍️</div>
+    <h1 style="text-align:center;margin:8px 0;font-size:24px">MOTORBIKE &amp; CAR ZONE</h1>
+    <p style="text-align:center;color:#666;margin-bottom:22px">Buy without login • Seller login with email</p>
+
+    <button class="primary" onclick="continueAsBuyer()">🚘 Continue as Buyer</button>
+    <button class="light" onclick="openSellerLogin()">🏪 Seller Login</button>
+
+    <div id="sellerLoginArea" style="display:none;margin-top:18px">
+      <label><b>Seller Email</b></label>
+      <input id="sellerEmail" type="email" placeholder="seller@example.com" autocomplete="email">
+      <label style="display:block;margin-top:12px"><b>Password</b></label>
+      <input id="sellerPassword" type="password" placeholder="Password" autocomplete="current-password">
+      <button class="primary" onclick="sellerLogin()">Login as Seller</button>
+      <button class="light" onclick="sellerSignup()">Create Seller Account</button>
+      <button class="light" onclick="sellerResetPassword()">Forgot Password</button>
+    </div>
+
+    <div id="firstLoginStatus">Buyers can enter without login. Sellers must login with email and password.</div>
+  </div>
+</div>
+
+
+<div id="buyerLoginModal" style="position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;padding:0">
+  <div style="width:100%;max-width:700px;background:#fff;border-radius:24px 24px 0 0;padding:22px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2 style="margin:0">Buyer Login</h2>
+      <button class="light" onclick="closeBuyerLogin()">✕ Close</button>
+    </div>
+    <p class="muted">Buyer login is not required. You can browse, view details and contact Motorbike &amp; Car Zone directly.</p>
+    <input id="buyerEmail" type="email" placeholder="Email" autocomplete="email" style="width:100%;padding:13px;border:1px solid #ddd;border-radius:11px;font-size:14px;margin-top:8px">
+    <input id="buyerPassword" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;padding:13px;border:1px solid #ddd;border-radius:11px;font-size:14px;margin-top:10px">
+    <button class="primary" style="width:100%;margin-top:10px" onclick="buyerLogin()">Login</button>
+    <button class="light" style="width:100%;margin-top:10px" onclick="buyerSignup()">Create Buyer Account</button>
+    <button class="light" style="width:100%;margin-top:10px" onclick="buyerResetPassword()">Forgot Password</button>
+    <div id="buyerLoginStatus" class="muted" style="margin-top:10px;min-height:20px"></div>
+  </div>
+</div>
+
+<div id="detailsModal" onclick="if(event.target===this)closeDetails()">
+  <div id="detailsCard">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h2 id="detailsTitle" style="margin:0">Vehicle Details</h2>
+      <button class="light" onclick="closeDetails()">✕ Close</button>
+    </div>
+    <div id="detailsBody" style="margin-top:10px"></div>
+    <button id="detailsWhatsApp" class="primary" style="width:100%;margin-top:15px">Contact Motorbike &amp; Car Zone</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo">🚗 MOTORBIKE &amp; CAR ZONE 🏍️</div>
+  <div class="tag">Buy without login • Sell with email login</div>
+  <div class="location">📍 Bangalore</div>
+  <div class="search">
+    <input id="searchInput" type="search" placeholder="🔍 Search cars, bikes, brand or model">
+    <button class="primary" style="padding:9px 13px" onclick="runSearch()">Search</button>
+  </div>
+</header>
+
+<main id="appContent" style="display:none">
+<section id="home">
+  <div class="grid" style="margin-top:15px">
+    <div class="card" onclick="show('buyer')"><div class="action">🚘 Buy Vehicle</div><div class="muted">Find cars &amp; bikes</div></div>
+    <div class="card" onclick="show('seller')"><div class="action">🏪 Sell Vehicle</div><div class="muted">List your vehicle</div></div>
+  </div>
+  <h2>Vehicle Type</h2>
+  <div class="chips">
+    <button class="chip" onclick="filterVehicles('all')">All</button>
+    <button class="chip" onclick="filterVehicles('car')">🚗 Cars</button>
+    <button class="chip" onclick="filterVehicles('bike')">🏍️ Bikes</button>
+  </div>
+  <h2>Featured Vehicles</h2>
+  <div id="vehicles"></div>
 </section>
 
-<section id="dash" class="card hidden">
-<h1>Admin Dashboard</h1>
-<p id="welcome"></p>
-<div class="stats">
-<button class="stat" id="pendingCard" type="button">Pending<b id="pending">0</b></button>
-<div class="stat" id="approvedCard">Approved<b id="approved">0</b></div>
-<div class="stat" id="rejectedCard">Rejected<b id="rejected">0</b></div>
-</div>
-<button class="logout" id="logoutBtn">Logout</button>
-<div id="filterButtons" style="display:flex;gap:8px;flex-wrap:wrap;margin:18px 0">
-<button type="button" onclick="showFilter('all')" style="width:auto;padding:10px 14px">All</button>
-<button type="button" onclick="showFilter('pending')" style="width:auto;padding:10px 14px">Pending</button>
-<button type="button" onclick="showFilter('approved')" style="width:auto;padding:10px 14px">Approved</button>
-<button type="button" onclick="showFilter('rejected')" style="width:auto;padding:10px 14px">Rejected</button>
-</div>
-<div id="vehicles"></div>
+<section id="buyer" class="hidden">
+  <h2>Buyer</h2>
+  <div class="card"><p><b>Browse approved vehicles</b></p><p class="muted">Search and view vehicle photos/details. Contact Motorbike & Car Zone for enquiries.</p><button class="primary" onclick="show('home')">View Vehicles</button></div>
 </section>
 
-<script>
-const API_KEY="AIzaSyDHQmPbIsNneQi0Ra553e9F6GXqvfjxMhU";
-const PROJECT="motorbike--car-zone";
-const ADMIN_UID="";
-let ID_TOKEN="";
-let USER_EMAIL="";
-let allVehicles=[];
-let currentFilter="all";
+<section id="seller" class="hidden">
+  <h2>Sell Your Vehicle</h2>
+  <div class="card"><p class="muted">Seller login is required. Your email is used for seller account login; buyer customers will not see your seller contact details.</p>
+    <div class="form">
+      <select id="type"><option value="car">Car</option><option value="bike">Bike</option></select>
+      <input id="name" placeholder="Seller Name">
+      <input id="phone" placeholder="Mobile Number" inputmode="tel">
+      <input id="model" placeholder="Brand & Model">
+      <input id="year" placeholder="Year" inputmode="numeric">
+      <input id="km" placeholder="KM Driven" inputmode="numeric">
+      <input id="colour" placeholder="Colour">
+      <input id="location" placeholder="Location (Karnataka)">
+      <input id="amount" placeholder="Selling Amount (₹)" inputmode="numeric">
 
-const $=id=>document.getElementById(id);
-function show(text,ok=false){$("msg").textContent=text;$("msg").className="msg "+(ok?"ok":"err");}
-function val(o){if(!o||typeof o!=="object")return o;if("stringValue"in o)return o.stringValue;if("integerValue"in o)return o.integerValue;if("doubleValue"in o)return o.doubleValue;if("booleanValue"in o)return o.booleanValue;if("timestampValue"in o)return o.timestampValue;if("referenceValue"in o)return o.referenceValue;if("bytesValue"in o)return o.bytesValue;if("nullValue"in o)return null;if("arrayValue"in o)return (o.arrayValue.values||[]).map(val);if("mapValue"in o){const r={};for(const k in(o.mapValue.fields||{}))r[k]=val(o.mapValue.fields[k]);return r}return o}
-function flatten(v,p="",out=[]){if(Array.isArray(v)){v.forEach((x,i)=>flatten(x,p?`${p}[${i}]`:`[${i}]`,out));}else if(v&&typeof v==="object"){for(const k in v)flatten(v[k],p?`${p}.${k}`:k,out)}else out.push({key:p,value:v});return out}
-function looksMedia(k,v){const s=(k+" "+String(v)).toLowerCase();return /photo|image|picture|document|doc|file|rc|registration|insurance|proof|aadhar|aadhaar|pan|url|media|upload|front|back/.test(s)||/^https?:\/\//.test(String(v));}
-function mediaHTML(v){const items=flatten(v).filter(x=>x.value!=null&&looksMedia(x.key,x.value));if(!items.length)return "<div class='note'>No photo/document link or media field was found in this Firestore document.</div>";return `<div class="media-grid">${items.map(x=>{const u=String(x.value),safe=esc(u),isImg=/\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(u)||/image/i.test(x.key);return `<div class="media"><b>${esc(x.key)}</b>${isImg&&/^https?:\/\//i.test(u)?`<img src="${safe}" onerror="this.style.display='none'">`:''}<a href="${safe}" target="_blank" rel="noopener">${safe}</a></div>`}).join("")}</div>`}
-function detailsHTML(v){const keys=["brand","type","model","title","vehicleName","name","price","amount","sellingPrice","location","city","year","modelYear","km","kilometres","kilometers","kmDriven","sellerId","sellerName","sellerEmail","sellerPhone"];return keys.filter(k=>v[k]!==undefined&&v[k]!==null&&v[k]!=="").map(k=>`<div><b>${esc(k)}:</b> ${esc(typeof v[k]==="object"?JSON.stringify(v[k]):v[k])}</div>`).join("")||"<div class='note'>No standard detail fields found.</div>"}
-function esc(x){return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
-async function fetchTimeout(url,opt={},ms=15000){
- const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
- try{return await fetch(url,{...opt,signal:c.signal});}
- catch(e){if(e.name==="AbortError") throw new Error("Request timed out. Please check mobile internet/data access."); throw e}
- finally{clearTimeout(t)}
+      <div class="filebox">
+        <b>Vehicle Photos</b>
+        <input id="photos" type="file" accept="image/*" multiple>
+        <small>Select vehicle photos for Admin review.</small>
+      </div>
+
+      <div class="filebox">
+        <b>RC Card</b>
+        <input id="rc" type="file" accept="image/*,.pdf">
+      </div>
+
+      <div class="filebox">
+        <b>Insurance</b>
+        <input id="insurance" type="file" accept="image/*,.pdf">
+      </div>
+
+      <div class="filebox">
+        <b>FC</b>
+        <input id="fc" type="file" accept="image/*,.pdf">
+      </div>
+
+      <textarea id="notes" rows="3" placeholder="Additional vehicle details"></textarea>
+      <div id="sellerProgress" class="progress"></div>
+      <button id="submitVehicleBtn" class="primary" onclick="submitVehicle()">Submit Vehicle</button>
+      <div id="status" class="muted"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="appNav" class="nav" style="display:none">
+  <button onclick="show('home')">🏠<br>Home</button>
+  <button onclick="show('buyer')">🔍<br>Buy</button>
+  <button onclick="show('seller')">➕<br>Sell</button>
+  <button id="sellerLogoutBtn" onclick="sellerLogout()" style="display:none">🚪<br>Logout</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  sendPasswordResetEmail, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+  getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDHQmPbIsNneQi0Ra553e9F6GXqvfjxMhU",
+  authDomain: "motorbike--car-zone.firebaseapp.com",
+  projectId: "motorbike--car-zone",
+  storageBucket: "motorbike--car-zone.firebasestorage.app",
+  messagingSenderId: "604944422467",
+  appId: "1:604944422467:web:57f36ceb7b3f60326b26f6",
+  measurementId: "G-F9BFX3GFTB"
+};
+
+const CLOUD_NAME = "forby6hp";
+const UPLOAD_PRESET = "motorbike_car_zone";
+const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let currentVehicleList = [];
+let buyerMode = false;
+
+const gate = document.getElementById("firstLoginGate");
+const appContent = document.getElementById("appContent");
+const appNav = document.getElementById("appNav");
+const loginStatus = document.getElementById("firstLoginStatus");
+
+function escapeHtml(value){
+  return String(value ?? "").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+function showApp(){
+  gate.style.display="none"; appContent.style.display="block"; appNav.style.display="flex";
+  document.getElementById("sellerLogoutBtn").style.display=currentUser ? "block" : "none";
+  loadApprovedVehicles();
+}
+function showGate(){
+  gate.style.display="flex"; appContent.style.display="none"; appNav.style.display="none";
 }
 
-$("resetBtn").onclick=async()=>{
- const email=$("email").value.trim();
- if(!email){show("Enter the Admin email first.");return}
- $("resetBtn").disabled=true;
- try{
-   const url=`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(API_KEY)}`;
-   const r=await fetchTimeout(url,{method:"POST",headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({requestType:"PASSWORD_RESET",email})});
-   const data=await r.json().catch(()=>({}));
-   if(!r.ok)throw new Error(data?.error?.message||("HTTP "+r.status));
-   show("Password reset email sent. Check the inbox for "+email+".",true);
- }catch(e){show("Reset failed:\n"+(e.message||String(e)));}
- finally{$("resetBtn").disabled=false;}
+let pendingBuyerContact = null;
+
+window.openBuyerLogin=function(model,price){
+  pendingBuyerContact={model,price};
+  document.getElementById("buyerLoginStatus").textContent="";
+  document.getElementById("buyerLoginModal").style.display="flex";
 };
 
-$("loginBtn").onclick=async()=>{
- const email=$("email").value.trim(), password=$("password").value;
- if(!email||!password){show("Enter email and password.");return}
- $("loginBtn").disabled=true;$("loginBtn").textContent="Signing in...";show("Connecting to Firebase...");
- try{
-   const url=`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(API_KEY)}`;
-   const r=await fetchTimeout(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password,returnSecureToken:true})});
-   const data=await r.json().catch(()=>({}));
-   if(!r.ok){
-     const code=data?.error?.message||("HTTP "+r.status);
-     const friendly={
-       INVALID_LOGIN_CREDENTIALS:"Email or password is incorrect.",
-       EMAIL_NOT_FOUND:"This email is not registered in Firebase Authentication.",
-       INVALID_PASSWORD:"The password is incorrect.",
-       INVALID_EMAIL:"Please enter a valid email address.",
-       MISSING_PASSWORD:"Please enter your password.",
-       USER_DISABLED:"This Firebase user is disabled.",
-       TOO_MANY_ATTEMPTS_TRY_LATER:"Too many attempts. Try again later.",
-       OPERATION_NOT_ALLOWED:"Email/password sign-in is not enabled in Firebase Authentication.",
-       API_KEY_INVALID:"The Firebase API key is invalid.",
-       INVALID_API_KEY:"The Firebase API key is invalid."
-     }[code]||code;
-     throw new Error(friendly);
-   }
-   ID_TOKEN=data.idToken;USER_EMAIL=data.email||email;
-   $("login").classList.add("hidden");$("dash").classList.remove("hidden");$("welcome").textContent="Signed in as "+USER_EMAIL;
-   await loadVehicles();
- }catch(e){show("Login failed:\n"+(e.message||String(e)));}
- finally{$("loginBtn").disabled=false;$("loginBtn").textContent="Login";}
+window.closeBuyerLogin=function(){
+  document.getElementById("buyerLoginModal").style.display="none";
 };
 
-$("logoutBtn").onclick=()=>{ID_TOKEN="";USER_EMAIL="";$("dash").classList.add("hidden");$("login").classList.remove("hidden");$("password").value="";show("Logged out.",true)};
+window.buyerLogin=async function(){
+  const email=document.getElementById("buyerEmail").value.trim();
+  const password=document.getElementById("buyerPassword").value;
+  if(!email || !password){
+    document.getElementById("buyerLoginStatus").textContent="Enter email and password.";
+    return;
+  }
+  try{
+    document.getElementById("buyerLoginStatus").textContent="Signing in...";
+    const result=await signInWithEmailAndPassword(auth,email,password);
+    closeBuyerLogin();
+    if(pendingBuyerContact){
+      contact(pendingBuyerContact.model,pendingBuyerContact.price);
+      pendingBuyerContact=null;
+    }
+    // Keep buyer browsing flow; buyer login is only for contact.
+    buyerMode=false;
+    currentUser=result.user;
+  }catch(error){
+    console.error(error);
+    document.getElementById("buyerLoginStatus").textContent="Login error: "+(error.code||"unknown")+(error.message?" — "+error.message:"");
+  }
+};
 
-async function loadVehicles(){
- $("vehicles").innerHTML="<p>Loading vehicles...</p>";
- try{
-  const url=`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/vehicles`;
-  const r=await fetchTimeout(url,{headers:{Authorization:"Bearer "+ID_TOKEN}});
-  const data=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(data?.error?.message||("Firestore HTTP "+r.status));
-  const docs=data.documents||[];let p=0,a=0,re=0;
-  const arr=docs.map(x=>{const f=x.fields||{},v={};for(const k in f)v[k]=val(f[k]);const status=String(v.status||"pending").toLowerCase();if(status==="approved")a++;else if(status==="rejected")re++;else p++;return{id:x.name.split("/").pop(),v,status};});
-  $("pending").textContent=p;$("approved").textContent=a;$("rejected").textContent=re;
-  allVehicles=arr;
-  const visible=arr.filter(x=>currentFilter==="all" || x.status===currentFilter);
-  $("vehicles").innerHTML=visible.length?visible.map(x=>`<div class="item"><span class="badge">${esc(x.status)}</span><h2>${esc(x.v.title||x.v.vehicleName||x.v.name||x.v.brand||"Vehicle")}</h2><div class="detail">${detailsHTML(x.v)}</div><div class="media-title">📷 Photos & 📄 Documents</div>${mediaHTML(x.v)}<details style="margin-top:14px"><summary>Show all Firestore fields</summary><div class="raw">${esc(JSON.stringify(x.v,null,2))}</div></details>${x.status==="pending"?`<div class="actions"><button class="approve" onclick="setStatus('${esc(x.id)}','approved')">Approve</button><button class="reject" onclick="setStatus('${esc(x.id)}','rejected')">Reject</button></div>`:""}${x.status==="approved"?`<div class="actions"><button style="background:#b45309" onclick="removeFromBuyer('${esc(x.id)}')">Remove from Buyer (Sold)</button></div>`:""}</div>`).join(""):"<p>No vehicles found in the vehicles collection.</p>";
- }catch(e){$("vehicles").innerHTML="<p class='err'>Could not load vehicles:<br>"+esc(e.message||String(e))+"</p>";}
+window.buyerSignup=async function(){
+  const email=document.getElementById("buyerEmail").value.trim();
+  const password=document.getElementById("buyerPassword").value;
+  if(!email || !password){
+    document.getElementById("buyerLoginStatus").textContent="Enter email and password.";
+    return;
+  }
+  if(password.length<6){
+    document.getElementById("buyerLoginStatus").textContent="Password must be at least 6 characters.";
+    return;
+  }
+  try{
+    document.getElementById("buyerLoginStatus").textContent="Creating buyer account...";
+    await createUserWithEmailAndPassword(auth,email,password);
+    closeBuyerLogin();
+    if(pendingBuyerContact){
+      contact(pendingBuyerContact.model,pendingBuyerContact.price);
+      pendingBuyerContact=null;
+    }
+  }catch(error){
+    console.error(error);
+    document.getElementById("buyerLoginStatus").textContent="Account error: "+(error.code||"unknown")+(error.message?" — "+error.message:"");
+  }
+};
+
+window.buyerResetPassword=async function(){
+  const email=document.getElementById("buyerEmail").value.trim();
+  if(!email){
+    document.getElementById("buyerLoginStatus").textContent="Enter your email first.";
+    return;
+  }
+  try{
+    await sendPasswordResetEmail(auth,email);
+    document.getElementById("buyerLoginStatus").textContent="Password reset email sent. Check your email.";
+  }catch(error){
+    console.error(error);
+    document.getElementById("buyerLoginStatus").textContent="Reset error: "+(error.code||"unknown")+(error.message?" — "+error.message:"");
+  }
+};
+
+window.sellerLogout=async function(){
+  await signOut(auth);
+  buyerMode=false;
+  showGate();
+  document.getElementById("sellerLoginArea").style.display="none";
+  loginStatus.textContent="Buyer can continue without login, or seller can login with email.";
+};
+
+window.continueAsBuyer=function(){
+  buyerMode=true;
+  currentUser=null;
+  showApp();
+};
+
+window.openSellerLogin=function(){
+  document.getElementById("sellerLoginArea").style.display="block";
+  loginStatus.textContent="Seller login: enter your email and password.";
+  document.getElementById("sellerEmail").focus();
+};
+
+window.sellerLogin=async function(){
+  const email=document.getElementById("sellerEmail").value.trim();
+  const password=document.getElementById("sellerPassword").value;
+  if(!email || !password){
+    loginStatus.textContent="Enter seller email and password.";
+    return;
+  }
+  try{
+    loginStatus.textContent="Signing in...";
+    await signInWithEmailAndPassword(auth,email,password);
+    buyerMode=false;
+  }catch(error){
+    console.error(error);
+    loginStatus.textContent="Login error: "+(error.code||"unknown")+(error.message?" — "+error.message:"");
+  }
+};
+
+window.sellerSignup=async function(){
+  const email=document.getElementById("sellerEmail").value.trim();
+  const password=document.getElementById("sellerPassword").value;
+  if(!email || !password){
+    loginStatus.textContent="Enter email and password to create an account.";
+    return;
+  }
+  if(password.length<6){
+    loginStatus.textContent="Password must be at least 6 characters.";
+    return;
+  }
+  try{
+    loginStatus.textContent="Creating seller account...";
+    await createUserWithEmailAndPassword(auth,email,password);
+    buyerMode=false;
+  }catch(error){
+    console.error(error);
+    loginStatus.textContent="Account error: "+(error.code||"unknown")+(error.message?" — "+error.message:"");
+  }
+};
+
+window.sellerResetPassword=async function(){
+  const email=document.getElementById("sellerEmail").value.trim();
+  if(!email){
+    loginStatus.textContent="Enter your seller email first.";
+    return;
+  }
+  try{
+    await sendPasswordResetEmail(auth,email);
+    loginStatus.textContent="Password reset email sent. Check your email.";
+  }catch(error){
+    console.error(error);
+    loginStatus.textContent="Reset error: "+(error.code||"unknown")+(error.message?" — "+error.message:"");
+  }
+};
+
+onAuthStateChanged(auth,user=>{
+  currentUser=user||null;
+  if(user){
+    buyerMode=false;
+    showApp();
+  }else if(buyerMode){
+    showApp();
+  }else{
+    showGate();
+  }
+});
+
+function normalizeVehicle(docSnap){
+  const d=docSnap.data();
+  return {
+    id:docSnap.id,
+    type:d.type||"car",
+    name:d.model || d.brand || "Vehicle",
+    year:d.year||"",
+    km:d.km||"",
+    loc:d.location||d.loc||"",
+    price:d.amount||d.price||"",
+    colour:d.colour||"",
+    sellerName:d.sellerName||"",
+    sellerPhone:d.sellerPhone||"",
+    notes:d.notes||"",
+    status:d.status||"pending",
+    photoUrls:Array.isArray(d.photoUrls)?d.photoUrls:[],
+    documentUrls:d.documentUrls||{},
+    demo:false
+  };
 }
-window.showFilter=(filter)=>{
- currentFilter=filter;
- const visible=allVehicles.filter(x=>filter==="all" || x.status===filter);
- $("vehicles").innerHTML=visible.length?visible.map(x=>`<div class="item"><span class="badge">${esc(x.status)}</span><h2>${esc(x.v.title||x.v.vehicleName||x.v.name||x.v.brand||"Vehicle")}</h2><div class="detail">${detailsHTML(x.v)}</div><div class="media-title">📷 Photos & 📄 Documents</div>${mediaHTML(x.v)}<details style="margin-top:14px"><summary>Show all Firestore fields</summary><div class="raw">${esc(JSON.stringify(x.v,null,2))}</div></details>${x.status==="pending"?`<div class="actions"><button class="approve" onclick="setStatus('${esc(x.id)}','approved')">Approve</button><button class="reject" onclick="setStatus('${esc(x.id)}','rejected')">Reject</button></div>`:""}${x.status==="approved"?`<div class="actions"><button style="background:#b45309" onclick="removeFromBuyer('${esc(x.id)}')">Remove from Buyer (Sold)</button></div>`:""}</div>`).join(""):"<p>No "+esc(filter==="all"?"":" "+filter)+" vehicles found.</p>";
-};
-$("pendingCard").onclick=()=>showFilter("pending");
-$("approvedCard").onclick=()=>showFilter("approved");
-$("rejectedCard").onclick=()=>showFilter("rejected");
 
-window.removeFromBuyer=async(id)=>{
- if(!confirm("Mark this vehicle as SOLD and remove it from the Buyer app?")) return;
- await setStatus(id,"sold");
+async function loadApprovedVehicles(){
+  let approved=[];
+  try{
+    const q=query(collection(db,"vehicles"),where("status","==","approved"));
+    const snap=await getDocs(q);
+    snap.forEach(s=>approved.push(normalizeVehicle(s)));
+  }catch(error){
+    console.error("Approved vehicle load error:",error);
+  }
+  currentVehicleList=approved;
+  render(currentVehicleList);
+}
+
+window.render=function(list=currentVehicleList){
+  currentVehicleList=list.slice();
+  const box=document.getElementById("vehicles");
+  if(!list.length){box.innerHTML='<div class="card muted">No vehicles found.</div>';return;}
+  box.innerHTML=list.map((v,i)=>{
+    const badge='<span class="badge approved">APPROVED</span>';
+    const photos=Array.isArray(v.photoUrls)?v.photoUrls.filter(Boolean):[];
+    const photoHtml=photos.length?`
+      <div class="mainPhotoGallery">
+        <div class="mainPhoto"><img src="${escapeHtml(photos[0])}" alt="Vehicle photo" loading="lazy"></div>
+        ${photos.slice(1,4).map(u=>`<div class="smallPhoto"><img src="${escapeHtml(u)}" alt="Vehicle photo" loading="lazy"></div>`).join("")}
+        ${photos.length>4?`<div class="morePhotos">+${photos.length-4}</div>`:""}
+      </div>`:"";
+    return `<div class="card vehicle">
+      ${badge}
+      ${photoHtml}
+      <h3>${escapeHtml(v.name)}</h3>
+      <div class="spec">${escapeHtml(v.year)} • ${escapeHtml(v.km)} • ${escapeHtml(v.colour)}</div>
+      <div class="spec">📍 ${escapeHtml(v.loc)}</div>
+      <div class="price">${escapeHtml(v.price)}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="light" onclick="viewDetails(${i})">View Details</button>
+        <button class="primary" onclick="contactByIndex(${i})">Contact Motorbike &amp; Car Zone</button>
+      </div>
+    </div>`;
+  }).join("");
 };
-window.setStatus=async(id,status)=>{
- try{
-  const url=`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/vehicles/${encodeURIComponent(id)}?updateMask.fieldPaths=status&updateMask.fieldPaths=reviewedBy&updateMask.fieldPaths=reviewedAt`;
-  const body={fields:{status:{stringValue:status},reviewedBy:{stringValue:USER_EMAIL},reviewedAt:{timestampValue:new Date().toISOString()}}};
-  const r=await fetchTimeout(url,{method:"PATCH",headers:{"Authorization":"Bearer "+ID_TOKEN,"Content-Type":"application/json"},body:JSON.stringify(body)});
-  const data=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(data?.error?.message||("HTTP "+r.status));
-  await loadVehicles();
- }catch(e){alert("Update failed: "+(e.message||String(e)));}
+
+window.filterVehicles=function(t){
+  if(t==="all") render(currentVehicleList);
+  else render(currentVehicleList.filter(v=>v.type===t));
+};
+
+window.runSearch=function(){
+  const q=(document.getElementById("searchInput").value||"").trim().toLowerCase();
+  const all=currentVehicleList;
+  if(!q){render(all);return;}
+  render(all.filter(v=>[
+    v.type,v.name,v.year,v.km,v.loc,v.price,v.colour
+  ].some(x=>String(x??"").toLowerCase().includes(q))));
+};
+
+document.getElementById("searchInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter") window.runSearch();
+});
+
+window.show=function(id){
+  if(id==="seller" && !currentUser){
+    showGate();
+    document.getElementById("sellerLoginArea").style.display="block";
+    loginStatus.textContent="Seller login is required to sell a vehicle.";
+    document.getElementById("sellerEmail").focus();
+    return;
+  }
+  ["home","buyer","seller"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  window.scrollTo(0,0);
+  if(id==="seller"){
+    const u=currentUser;
+    if(u && !document.getElementById("phone").value) document.getElementById("phone").value="";
+  }
+};
+
+function contact(model,price){
+  const number="918951954077";
+  const msg="Hello MOTORBIKE & CAR ZONE, I am interested in "+model+" listed at "+price+". Please help me with this vehicle.";
+  window.open("https://wa.me/"+number+"?text="+encodeURIComponent(msg),"_blank");
+}
+window.contactByIndex=function(index){
+  const v=currentVehicleList[index];
+  if(v) contact(v.name,v.price);
+};
+
+window.viewDetails=function(index){
+  const v=currentVehicleList[index];
+  if(!v)return;
+  document.getElementById("detailsTitle").textContent=v.name;
+  let html="";
+  const row=(label,val)=>`<div class="detailRow"><div class="detailLabel">${escapeHtml(label)}</div><div class="detailValue">${escapeHtml(val)}</div></div>`;
+  html+=row("Vehicle Type",v.type==="car"?"Car":"Bike");
+  html+=row("Brand / Model",v.name);
+  html+=row("Year",v.year);
+  html+=row("KM Driven",v.km);
+  html+=row("Colour",v.colour);
+  html+=row("Location",v.loc);
+  html+=row("Selling Price",v.price);
+  if(v.notes) html+=row("Vehicle Details",v.notes);
+  if(v.photoUrls?.length){
+    html+=`<div class="detailRow"><div class="detailLabel">Vehicle Photos</div><div class="mediaGrid">${
+      v.photoUrls.map(u=>`<a href="${escapeHtml(u)}" target="_blank" rel="noopener"><img src="${escapeHtml(u)}" alt="Vehicle photo" loading="lazy"></a>`).join("")
+    }</div></div>`;
+  }
+  document.getElementById("detailsBody").innerHTML=html;
+  document.getElementById("detailsWhatsApp").textContent="Contact Motorbike & Car Zone";
+  document.getElementById("detailsWhatsApp").onclick=()=>contact(v.name,v.price);
+  document.getElementById("detailsModal").style.display="flex";
+};
+
+window.closeDetails=function(){document.getElementById("detailsModal").style.display="none";};
+
+async function uploadToCloudinary(file){
+  const fd=new FormData();
+  fd.append("file",file);
+  fd.append("upload_preset",UPLOAD_PRESET);
+  const res=await fetch(CLOUDINARY_UPLOAD_URL,{method:"POST",body:fd});
+  const data=await res.json();
+  if(!res.ok || !data.secure_url) throw new Error(data.error?.message||"Cloudinary upload failed");
+  return data.secure_url;
+}
+
+async function uploadFiles(files,label){
+  const urls=[];
+  for(let i=0;i<files.length;i++){
+    document.getElementById("sellerProgress").textContent=`Uploading ${label} ${i+1} of ${files.length}...`;
+    urls.push(await uploadToCloudinary(files[i]));
+  }
+  return urls;
+}
+
+window.submitVehicle=async function(){
+  const ids=["name","phone","model","year","km","amount","location"];
+  if(ids.some(id=>!document.getElementById(id).value.trim())){
+    document.getElementById("status").textContent="Please fill Name, Mobile, Model, Year, KM, Amount and Location.";
+    return;
+  }
+  if(!currentUser){
+    document.getElementById("status").textContent="Please login as a seller with email and password first.";
+    return;
+  }
+
+  const btn=document.getElementById("submitVehicleBtn");
+  btn.disabled=true;
+  document.getElementById("status").textContent="";
+  document.getElementById("sellerProgress").textContent="Starting upload...";
+
+  try{
+    const photoFiles=Array.from(document.getElementById("photos").files||[]);
+    const rcFile=document.getElementById("rc").files[0]||null;
+    const insuranceFile=document.getElementById("insurance").files[0]||null;
+    const fcFile=document.getElementById("fc").files[0]||null;
+
+    const photoUrls=photoFiles.length?await uploadFiles(photoFiles,"photo"):[];
+    const documentUrls={};
+    if(rcFile) documentUrls.rc=(await uploadFiles([rcFile],"RC"))[0];
+    if(insuranceFile) documentUrls.insurance=(await uploadFiles([insuranceFile],"insurance"))[0];
+    if(fcFile) documentUrls.fc=(await uploadFiles([fcFile],"FC"))[0];
+
+    document.getElementById("sellerProgress").textContent="Saving vehicle for Admin approval...";
+    await addDoc(collection(db,"vehicles"),{
+      type:document.getElementById("type").value,
+      model:document.getElementById("model").value.trim(),
+      brand:document.getElementById("model").value.trim(),
+      sellerName:document.getElementById("name").value.trim(),
+      sellerPhone:document.getElementById("phone").value.trim(),
+      sellerId:currentUser.uid,
+      year:document.getElementById("year").value.trim(),
+      km:document.getElementById("km").value.trim(),
+      colour:document.getElementById("colour").value.trim(),
+      location:document.getElementById("location").value.trim(),
+      amount:document.getElementById("amount").value.trim(),
+      notes:document.getElementById("notes").value.trim(),
+      status:"pending",
+      photoUrls:photoUrls,
+      documentUrls:documentUrls,
+      photoFileNames:photoFiles.map(f=>f.name),
+      documentFileNames:{
+        rc:rcFile?.name||"",
+        insurance:insuranceFile?.name||"",
+        fc:fcFile?.name||""
+      },
+      createdAt:serverTimestamp()
+    });
+
+    document.getElementById("sellerProgress").textContent="";
+    document.getElementById("status").innerHTML="<b>Submitted successfully.</b> Photos and documents uploaded. Status: Pending Admin Approval.";
+    document.getElementById("photos").value="";
+    document.getElementById("rc").value="";
+    document.getElementById("insurance").value="";
+    document.getElementById("fc").value="";
+  }catch(error){
+    console.error(error);
+    document.getElementById("sellerProgress").textContent="";
+    document.getElementById("status").textContent="Upload/Save error: "+(error.message||error.code||"unknown error");
+  }finally{
+    btn.disabled=false;
+  }
 };
 </script>
 </body>
