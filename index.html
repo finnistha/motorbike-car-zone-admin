@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Motorbike & Car Zone Admin</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Motorbike & Car Zone Admin - LOGIN V4</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f1f3f6;color:#111827}
 header{background:#111827;color:#fff;padding:18px;font-size:22px;font-weight:700}
@@ -21,7 +22,7 @@ button:disabled{opacity:.55}.msg{margin-top:16px;line-height:1.5;white-space:pre
 </style>
 </head>
 <body>
-<header>🚗 Motorbike & Car Zone Admin</header>
+<header>🚗 Motorbike & Car Zone Admin <span style='font-size:12px;opacity:.8'>LOGIN V4</span></header>
 
 <section id="login" class="card">
 <h1>Admin Login</h1>
@@ -95,12 +96,13 @@ $("loginBtn").onclick=async()=>{
        INVALID_LOGIN_CREDENTIALS:"Email or password is incorrect.",
        EMAIL_NOT_FOUND:"This email is not registered in Firebase Authentication.",
        INVALID_PASSWORD:"The password is incorrect.",
-       USER_DISABLED:"This Firebase user is disabled.",
-       TOO_MANY_ATTEMPTS_TRY_LATER:"Too many attempts. Try again later.",
        INVALID_EMAIL:"Please enter a valid email address.",
        MISSING_PASSWORD:"Please enter your password.",
-       INVALID_PASSWORD:"The password is incorrect. Use Forgot password / Reset if needed.",
-       INVALID_LOGIN_CREDENTIALS:"Email or password is incorrect. Use Forgot password / Reset if needed."
+       USER_DISABLED:"This Firebase user is disabled.",
+       TOO_MANY_ATTEMPTS_TRY_LATER:"Too many attempts. Try again later.",
+       OPERATION_NOT_ALLOWED:"Email/password sign-in is not enabled in Firebase Authentication.",
+       API_KEY_INVALID:"The Firebase API key is invalid.",
+       INVALID_API_KEY:"The Firebase API key is invalid."
      }[code]||code;
      throw new Error(friendly);
    }
