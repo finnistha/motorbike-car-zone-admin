@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motorbike & Car Zone Admin</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f1f3f6;color:#111827}
+header{background:#111827;color:#fff;padding:18px;font-size:22px;font-weight:700}
+.card{max-width:650px;margin:45px auto;background:#fff;border-radius:20px;padding:28px;box-shadow:0 5px 25px #0001}
+h1{font-size:34px;margin:0 0 28px}input{width:100%;padding:18px;margin-bottom:16px;border:1px solid #ccc;border-radius:14px;font-size:17px}
+button{width:100%;padding:17px;border:0;border-radius:14px;background:#111827;color:#fff;font-size:18px}
+button:disabled{opacity:.55}.msg{margin-top:16px;line-height:1.5;white-space:pre-wrap}.err{color:#b91c1c}.ok{color:#15803d}
+.hidden{display:none}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+.stat{background:#f3f4f6;padding:18px;text-align:center;border-radius:14px}.stat b{display:block;font-size:28px}
+.item{border:1px solid #ddd;border-radius:14px;padding:15px;margin:12px 0}.actions{display:flex;gap:10px;margin-top:12px}
+.actions button{padding:12px}.approve{background:#15803d}.reject{background:#b91c1c}.logout{background:#6b7280}
+@media(max-width:650px){.card{margin:25px 15px;padding:22px}.stats{grid-template-columns:1fr}}
+
+.media-title{font-size:18px;font-weight:700;margin:18px 0 8px}.media-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.media{border:1px solid #ddd;border-radius:12px;padding:8px;background:#fafafa}.media img{width:100%;height:170px;object-fit:cover;border-radius:8px}.media a{display:block;padding:10px 4px;word-break:break-word;color:#075985}.raw{font-size:12px;background:#f7f7f7;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-word}.note{font-size:14px;color:#4b5563}.badge{display:inline-block;padding:4px 9px;border-radius:999px;background:#eee;font-size:13px;margin-bottom:8px}@media(max-width:650px){.media-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>🚗 Motorbike & Car Zone Admin</header>
+
+<section id="login" class="card">
+<h1>Admin Login</h1>
+<input id="email" type="email" value="devieventscatering@gmail.com" placeholder="Admin email">
+<input id="password" type="password" placeholder="Password">
+<button id="loginBtn">Login</button>
+<div id="msg" class="msg"></div>
+</section>
+
+<section id="dash" class="card hidden">
+<h1>Admin Dashboard</h1>
+<p id="welcome"></p>
+<div class="stats">
+<div class="stat">Pending<b id="pending">0</b></div>
+<div class="stat">Approved<b id="approved">0</b></div>
+<div class="stat">Rejected<b id="rejected">0</b></div>
+</div>
+<button class="logout" id="logoutBtn">Logout</button>
+<div id="vehicles"></div>
+</section>
+
+<script>
+const API_KEY="AIzaSyDHQmPbIsNneQi0Ra553e9F6GXqvfjxMhU";
+const PROJECT="motorbike--car-zone";
+const ADMIN_UID="LiWfRCZw31TZfz3K3jwdlnBOp2c2";
+let ID_TOKEN="";
+let USER_EMAIL="";
+
+const $=id=>document.getElementById(id);
+function show(text,ok=false){$("msg").textContent=text;$("msg").className="msg "+(ok?"ok":"err");}
+function val(o){if(!o||typeof o!=="object")return o;if("stringValue"in o)return o.stringValue;if("integerValue"in o)return o.integerValue;if("doubleValue"in o)return o.doubleValue;if("booleanValue"in o)return o.booleanValue;if("timestampValue"in o)return o.timestampValue;if("referenceValue"in o)return o.referenceValue;if("bytesValue"in o)return o.bytesValue;if("nullValue"in o)return null;if("arrayValue"in o)return (o.arrayValue.values||[]).map(val);if("mapValue"in o){const r={};for(const k in(o.mapValue.fields||{}))r[k]=val(o.mapValue.fields[k]);return r}return o}
+function flatten(v,p="",out=[]){if(Array.isArray(v)){v.forEach((x,i)=>flatten(x,p?`${p}[${i}]`:`[${i}]`,out));}else if(v&&typeof v==="object"){for(const k in v)flatten(v[k],p?`${p}.${k}`:k,out)}else out.push({key:p,value:v});return out}
+function looksMedia(k,v){const s=(k+" "+String(v)).toLowerCase();return /photo|image|picture|document|doc|file|rc|registration|insurance|proof|aadhar|aadhaar|pan|url|media|upload|front|back/.test(s)||/^https?:\/\//.test(String(v));}
+function mediaHTML(v){const items=flatten(v).filter(x=>x.value!=null&&looksMedia(x.key,x.value));if(!items.length)return "<div class='note'>No photo/document link or media field was found in this Firestore document.</div>";return `<div class="media-grid">${items.map(x=>{const u=String(x.value),safe=esc(u),isImg=/\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(u)||/image/i.test(x.key);return `<div class="media"><b>${esc(x.key)}</b>${isImg&&/^https?:\/\//i.test(u)?`<img src="${safe}" onerror="this.style.display='none'">`:''}<a href="${safe}" target="_blank" rel="noopener">${safe}</a></div>`}).join("")}</div>`}
+function detailsHTML(v){const keys=["brand","type","model","title","vehicleName","name","price","amount","sellingPrice","location","city","year","modelYear","km","kilometres","kilometers","kmDriven","sellerId","sellerName","sellerEmail","sellerPhone"];return keys.filter(k=>v[k]!==undefined&&v[k]!==null&&v[k]!=="").map(k=>`<div><b>${esc(k)}:</b> ${esc(typeof v[k]==="object"?JSON.stringify(v[k]):v[k])}</div>`).join("")||"<div class='note'>No standard detail fields found.</div>"}
+function esc(x){return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+async function fetchTimeout(url,opt={},ms=15000){
+ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
+ try{return await fetch(url,{...opt,signal:c.signal});}
+ catch(e){if(e.name==="AbortError") throw new Error("Request timed out. Please check mobile internet/data access."); throw e}
+ finally{clearTimeout(t)}
+}
+
+$("loginBtn").onclick=async()=>{
+ const email=$("email").value.trim(), password=$("password").value;
+ if(!email||!password){show("Enter email and password.");return}
+ $("loginBtn").disabled=true;$("loginBtn").textContent="Signing in...";show("Connecting to Firebase...");
+ try{
+   const url=`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(API_KEY)}`;
+   const r=await fetchTimeout(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password,returnSecureToken:true})});
+   const data=await r.json().catch(()=>({}));
+   if(!r.ok){
+     const code=data?.error?.message||("HTTP "+r.status);
+     const friendly={
+       INVALID_LOGIN_CREDENTIALS:"Email or password is incorrect.",
+       EMAIL_NOT_FOUND:"This email is not registered in Firebase Authentication.",
+       INVALID_PASSWORD:"The password is incorrect.",
+       USER_DISABLED:"This Firebase user is disabled.",
+       TOO_MANY_ATTEMPTS_TRY_LATER:"Too many attempts. Try again later."
+     }[code]||code;
+     throw new Error(friendly);
+   }
+   if(data.localId!==ADMIN_UID) throw new Error("Login worked, but this Firebase user is not the Admin account.");
+   ID_TOKEN=data.idToken;USER_EMAIL=data.email||email;
+   $("login").classList.add("hidden");$("dash").classList.remove("hidden");$("welcome").textContent="Signed in as "+USER_EMAIL;
+   await loadVehicles();
+ }catch(e){show("Login failed:\n"+(e.message||String(e)));}
+ finally{$("loginBtn").disabled=false;$("loginBtn").textContent="Login";}
+};
+
+$("logoutBtn").onclick=()=>{ID_TOKEN="";USER_EMAIL="";$("dash").classList.add("hidden");$("login").classList.remove("hidden");$("password").value="";show("Logged out.",true)};
+
+async function loadVehicles(){
+ $("vehicles").innerHTML="<p>Loading vehicles...</p>";
+ try{
+  const url=`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/vehicles`;
+  const r=await fetchTimeout(url,{headers:{Authorization:"Bearer "+ID_TOKEN}});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(data?.error?.message||("Firestore HTTP "+r.status));
+  const docs=data.documents||[];let p=0,a=0,re=0;
+  const arr=docs.map(x=>{const f=x.fields||{},v={};for(const k in f)v[k]=val(f[k]);const status=String(v.status||"pending").toLowerCase();if(status==="approved")a++;else if(status==="rejected")re++;else p++;return{id:x.name.split("/").pop(),v,status};});
+  $("pending").textContent=p;$("approved").textContent=a;$("rejected").textContent=re;
+  $("vehicles").innerHTML=arr.length?arr.map(x=>`<div class="item"><span class="badge">${esc(x.status)}</span><h2>${esc(x.v.title||x.v.vehicleName||x.v.name||x.v.brand||"Vehicle")}</h2><div class="detail">${detailsHTML(x.v)}</div><div class="media-title">📷 Photos & 📄 Documents</div>${mediaHTML(x.v)}<details style="margin-top:14px"><summary>Show all Firestore fields</summary><div class="raw">${esc(JSON.stringify(x.v,null,2))}</div></details>${x.status==="pending"?`<div class="actions"><button class="approve" onclick="setStatus('${esc(x.id)}','approved')">Approve</button><button class="reject" onclick="setStatus('${esc(x.id)}','rejected')">Reject</button></div>`:""}</div>`).join(""):"<p>No vehicles found in the vehicles collection.</p>";
+ }catch(e){$("vehicles").innerHTML="<p class='err'>Could not load vehicles:<br>"+esc(e.message||String(e))+"</p>";}
+}
+window.setStatus=async(id,status)=>{
+ try{
+  const url=`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/vehicles/${encodeURIComponent(id)}?updateMask.fieldPaths=status&updateMask.fieldPaths=reviewedBy&updateMask.fieldPaths=reviewedAt`;
+  const body={fields:{status:{stringValue:status},reviewedBy:{stringValue:USER_EMAIL},reviewedAt:{timestampValue:new Date().toISOString()}}};
+  const r=await fetchTimeout(url,{method:"PATCH",headers:{"Authorization":"Bearer "+ID_TOKEN,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(data?.error?.message||("HTTP "+r.status));
+  await loadVehicles();
+ }catch(e){alert("Update failed: "+(e.message||String(e)));}
+};
+</script>
+</body>
+</html>
