@@ -13,7 +13,7 @@ h1{font-size:34px;margin:0 0 28px}input{width:100%;padding:18px;margin-bottom:16
 button{width:100%;padding:17px;border:0;border-radius:14px;background:#111827;color:#fff;font-size:18px}
 button:disabled{opacity:.55}.msg{margin-top:16px;line-height:1.5;white-space:pre-wrap}.err{color:#b91c1c}.ok{color:#15803d}
 .hidden{display:none}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
-.stat{background:#f3f4f6;padding:18px;text-align:center;border-radius:14px}.stat b{display:block;font-size:28px}
+.stat{background:#f3f4f6;padding:18px;text-align:center;border-radius:14px}.stat b{display:block;font-size:28px}.stat{width:100%;color:#111827;cursor:pointer}.stat:hover{background:#e5e7eb}
 .item{border:1px solid #ddd;border-radius:14px;padding:15px;margin:12px 0}.actions{display:flex;gap:10px;margin-top:12px}
 .actions button{padding:12px}.approve{background:#15803d}.reject{background:#b91c1c}.logout{background:#6b7280}
 @media(max-width:650px){.card{margin:25px 15px;padding:22px}.stats{grid-template-columns:1fr}}
@@ -37,11 +37,17 @@ button:disabled{opacity:.55}.msg{margin-top:16px;line-height:1.5;white-space:pre
 <h1>Admin Dashboard</h1>
 <p id="welcome"></p>
 <div class="stats">
-<div class="stat">Pending<b id="pending">0</b></div>
-<div class="stat">Approved<b id="approved">0</b></div>
-<div class="stat">Rejected<b id="rejected">0</b></div>
+<button class="stat" id="pendingCard" type="button">Pending<b id="pending">0</b></button>
+<div class="stat" id="approvedCard">Approved<b id="approved">0</b></div>
+<div class="stat" id="rejectedCard">Rejected<b id="rejected">0</b></div>
 </div>
 <button class="logout" id="logoutBtn">Logout</button>
+<div id="filterButtons" style="display:flex;gap:8px;flex-wrap:wrap;margin:18px 0">
+<button type="button" onclick="showFilter('all')" style="width:auto;padding:10px 14px">All</button>
+<button type="button" onclick="showFilter('pending')" style="width:auto;padding:10px 14px">Pending</button>
+<button type="button" onclick="showFilter('approved')" style="width:auto;padding:10px 14px">Approved</button>
+<button type="button" onclick="showFilter('rejected')" style="width:auto;padding:10px 14px">Rejected</button>
+</div>
 <div id="vehicles"></div>
 </section>
 
@@ -51,6 +57,8 @@ const PROJECT="motorbike--car-zone";
 const ADMIN_UID="";
 let ID_TOKEN="";
 let USER_EMAIL="";
+let allVehicles=[];
+let currentFilter="all";
 
 const $=id=>document.getElementById(id);
 function show(text,ok=false){$("msg").textContent=text;$("msg").className="msg "+(ok?"ok":"err");}
@@ -125,9 +133,20 @@ async function loadVehicles(){
   const docs=data.documents||[];let p=0,a=0,re=0;
   const arr=docs.map(x=>{const f=x.fields||{},v={};for(const k in f)v[k]=val(f[k]);const status=String(v.status||"pending").toLowerCase();if(status==="approved")a++;else if(status==="rejected")re++;else p++;return{id:x.name.split("/").pop(),v,status};});
   $("pending").textContent=p;$("approved").textContent=a;$("rejected").textContent=re;
-  $("vehicles").innerHTML=arr.length?arr.map(x=>`<div class="item"><span class="badge">${esc(x.status)}</span><h2>${esc(x.v.title||x.v.vehicleName||x.v.name||x.v.brand||"Vehicle")}</h2><div class="detail">${detailsHTML(x.v)}</div><div class="media-title">📷 Photos & 📄 Documents</div>${mediaHTML(x.v)}<details style="margin-top:14px"><summary>Show all Firestore fields</summary><div class="raw">${esc(JSON.stringify(x.v,null,2))}</div></details>${x.status==="pending"?`<div class="actions"><button class="approve" onclick="setStatus('${esc(x.id)}','approved')">Approve</button><button class="reject" onclick="setStatus('${esc(x.id)}','rejected')">Reject</button></div>`:""}${x.status==="approved"?`<div class="actions"><button style="background:#b45309" onclick="removeFromBuyer('${esc(x.id)}')">Remove from Buyer (Sold)</button></div>`:""}</div>`).join(""):"<p>No vehicles found in the vehicles collection.</p>";
+  allVehicles=arr;
+  const visible=arr.filter(x=>currentFilter==="all" || x.status===currentFilter);
+  $("vehicles").innerHTML=visible.length?visible.map(x=>`<div class="item"><span class="badge">${esc(x.status)}</span><h2>${esc(x.v.title||x.v.vehicleName||x.v.name||x.v.brand||"Vehicle")}</h2><div class="detail">${detailsHTML(x.v)}</div><div class="media-title">📷 Photos & 📄 Documents</div>${mediaHTML(x.v)}<details style="margin-top:14px"><summary>Show all Firestore fields</summary><div class="raw">${esc(JSON.stringify(x.v,null,2))}</div></details>${x.status==="pending"?`<div class="actions"><button class="approve" onclick="setStatus('${esc(x.id)}','approved')">Approve</button><button class="reject" onclick="setStatus('${esc(x.id)}','rejected')">Reject</button></div>`:""}${x.status==="approved"?`<div class="actions"><button style="background:#b45309" onclick="removeFromBuyer('${esc(x.id)}')">Remove from Buyer (Sold)</button></div>`:""}</div>`).join(""):"<p>No vehicles found in the vehicles collection.</p>";
  }catch(e){$("vehicles").innerHTML="<p class='err'>Could not load vehicles:<br>"+esc(e.message||String(e))+"</p>";}
 }
+window.showFilter=(filter)=>{
+ currentFilter=filter;
+ const visible=allVehicles.filter(x=>filter==="all" || x.status===filter);
+ $("vehicles").innerHTML=visible.length?visible.map(x=>`<div class="item"><span class="badge">${esc(x.status)}</span><h2>${esc(x.v.title||x.v.vehicleName||x.v.name||x.v.brand||"Vehicle")}</h2><div class="detail">${detailsHTML(x.v)}</div><div class="media-title">📷 Photos & 📄 Documents</div>${mediaHTML(x.v)}<details style="margin-top:14px"><summary>Show all Firestore fields</summary><div class="raw">${esc(JSON.stringify(x.v,null,2))}</div></details>${x.status==="pending"?`<div class="actions"><button class="approve" onclick="setStatus('${esc(x.id)}','approved')">Approve</button><button class="reject" onclick="setStatus('${esc(x.id)}','rejected')">Reject</button></div>`:""}${x.status==="approved"?`<div class="actions"><button style="background:#b45309" onclick="removeFromBuyer('${esc(x.id)}')">Remove from Buyer (Sold)</button></div>`:""}</div>`).join(""):"<p>No "+esc(filter==="all"?"":" "+filter)+" vehicles found.</p>";
+};
+$("pendingCard").onclick=()=>showFilter("pending");
+$("approvedCard").onclick=()=>showFilter("approved");
+$("rejectedCard").onclick=()=>showFilter("rejected");
+
 window.removeFromBuyer=async(id)=>{
  if(!confirm("Mark this vehicle as SOLD and remove it from the Buyer app?")) return;
  await setStatus(id,"sold");
