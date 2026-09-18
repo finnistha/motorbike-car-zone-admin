@@ -28,6 +28,7 @@ button:disabled{opacity:.55}.msg{margin-top:16px;line-height:1.5;white-space:pre
 <input id="email" type="email" value="devieventscatering@gmail.com" placeholder="Admin email">
 <input id="password" type="password" placeholder="Password">
 <button id="loginBtn">Login</button>
+<button type="button" id="resetBtn" style="margin-top:12px;background:#6b7280">Forgot password / Reset</button>
 <div id="msg" class="msg"></div>
 </section>
 
@@ -46,7 +47,7 @@ button:disabled{opacity:.55}.msg{margin-top:16px;line-height:1.5;white-space:pre
 <script>
 const API_KEY="AIzaSyDHQmPbIsNneQi0Ra553e9F6GXqvfjxMhU";
 const PROJECT="motorbike--car-zone";
-const ADMIN_UID="LiWfRCZw31TZfz3K3jwdlnBOp2c2";
+const ADMIN_UID="";
 let ID_TOKEN="";
 let USER_EMAIL="";
 
@@ -65,6 +66,21 @@ async function fetchTimeout(url,opt={},ms=15000){
  finally{clearTimeout(t)}
 }
 
+$("resetBtn").onclick=async()=>{
+ const email=$("email").value.trim();
+ if(!email){show("Enter the Admin email first.");return}
+ $("resetBtn").disabled=true;
+ try{
+   const url=`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(API_KEY)}`;
+   const r=await fetchTimeout(url,{method:"POST",headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({requestType:"PASSWORD_RESET",email})});
+   const data=await r.json().catch(()=>({}));
+   if(!r.ok)throw new Error(data?.error?.message||("HTTP "+r.status));
+   show("Password reset email sent. Check the inbox for "+email+".",true);
+ }catch(e){show("Reset failed:\n"+(e.message||String(e)));}
+ finally{$("resetBtn").disabled=false;}
+};
+
 $("loginBtn").onclick=async()=>{
  const email=$("email").value.trim(), password=$("password").value;
  if(!email||!password){show("Enter email and password.");return}
@@ -80,15 +96,17 @@ $("loginBtn").onclick=async()=>{
        EMAIL_NOT_FOUND:"This email is not registered in Firebase Authentication.",
        INVALID_PASSWORD:"The password is incorrect.",
        USER_DISABLED:"This Firebase user is disabled.",
-       TOO_MANY_ATTEMPTS_TRY_LATER:"Too many attempts. Try again later."
+       TOO_MANY_ATTEMPTS_TRY_LATER:"Too many attempts. Try again later.",
+       INVALID_EMAIL:"Please enter a valid email address.",
+       MISSING_PASSWORD:"Please enter your password.",
+       INVALID_PASSWORD:"The password is incorrect. Use Forgot password / Reset if needed.",
+       INVALID_LOGIN_CREDENTIALS:"Email or password is incorrect. Use Forgot password / Reset if needed."
      }[code]||code;
      throw new Error(friendly);
    }
-   if((data.email||email).toLowerCase()!=="devieventscatering@gmail.com")
-     throw new Error("Please use the Admin email: devieventscatering@gmail.com");
    ID_TOKEN=data.idToken;USER_EMAIL=data.email||email;
    $("login").classList.add("hidden");$("dash").classList.remove("hidden");$("welcome").textContent="Signed in as "+USER_EMAIL;
-   show("Login successful. Loading Admin dashboard...",true);\n   await loadVehicles();
+   await loadVehicles();
  }catch(e){show("Login failed:\n"+(e.message||String(e)));}
  finally{$("loginBtn").disabled=false;$("loginBtn").textContent="Login";}
 };
