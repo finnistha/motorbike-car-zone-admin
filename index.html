@@ -1,488 +1,222 @@
 
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-    })[c]);
-}
+       TOO_MANY_ATTEMPTS_TRY_LATER:"Too many attempts. Try again later.",
+       OPERATION_NOT_ALLOWED:"Email/password sign-in is not enabled in Firebase Authentication.",
+       API_KEY_INVALID:"The Firebase API key is invalid.",
+       INVALID_API_KEY:"The Firebase API key is invalid."
+     }[code]||code;
+     throw new Error(friendly);
+   }
 
+   ID_TOKEN=data.idToken;
+   USER_EMAIL=data.email||email;
 
-// FIRESTORE VALUE CONVERSION
+   $("login").classList.add("hidden");
+   $("dash").classList.remove("hidden");
+   $("welcome").textContent="Signed in as "+USER_EMAIL;
 
-function val(o) {
-    if (!o || typeof o !== "object") return o;
+   await loadVehicles();
 
-    if ("stringValue" in o) return o.stringValue;
-    if ("integerValue" in o) return o.integerValue;
-    if ("doubleValue" in o) return o.doubleValue;
-    if ("booleanValue" in o) return o.booleanValue;
-    if ("timestampValue" in o) return o.timestampValue;
-    if ("referenceValue" in o) return o.referenceValue;
-    if ("nullValue" in o) return null;
-
-    if ("arrayValue" in o)
-        return (o.arrayValue.values || []).map(val);
-
-    if ("mapValue" in o) {
-        const result = {};
-        const fields = o.mapValue.fields || {};
-        for (const key in fields) result[key] = val(fields[key]);
-        return result;
-    }
-
-    return o;
-}
-
-
-// REQUEST TIMEOUT
-
-async function fetchTimeout(url, options = {}, ms = 20000) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), ms);
-
-    try {
-        return await fetch(url, {
-            ...options,
-            signal: controller.signal
-        });
-    } catch (error) {
-        if (error.name === "AbortError")
-            throw new Error("Request timed out. Check internet connection.");
-        throw error;
-    } finally {
-        clearTimeout(timer);
-    }
-}
-
-
-// ADMIN LOGIN
-
-$("loginBtn").onclick = async function() {
-    const email = $("email").value.trim();
-    const password = $("password").value;
-
-    if (!email || !password) {
-        showMessage("Enter email and password.");
-        return;
-    }
-
-    if (!ADMIN_UID || ADMIN_UID === "YOUR_ADMIN_UID") {
-        showMessage("Enter your actual Firebase Admin UID in the code.");
-        return;
-    }
-
-    $("loginBtn").disabled = true;
-    $("loginBtn").textContent = "Signing in...";
-    showMessage("Connecting to Firebase...");
-
-    try {
-        const url =
-        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(API_KEY)}`;
-
-        const response = await fetchTimeout(url, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                email,
-                password,
-                returnSecureToken: true
-            })
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            const code = data.error?.message || "Login failed";
-            const friendly = {
-                INVALID_LOGIN_CREDENTIALS: "Email or password is incorrect.",
-                EMAIL_NOT_FOUND: "Email is not registered.",
-                INVALID_PASSWORD: "Incorrect password.",
-                USER_DISABLED: "This account is disabled.",
-                TOO_MANY_ATTEMPTS_TRY_LATER: "Too many attempts. Try later.",
-                OPERATION_NOT_ALLOWED: "Enable Email/Password in Firebase."
-            };
-            throw new Error(friendly[code] || code);
-        }
-
-        if (data.localId !== ADMIN_UID) {
-            throw new Error("Access denied. Not the authorized Admin.");
-        }
-
-        ID_TOKEN = data.idToken;
-        USER_EMAIL = data.email || email;
-
-        $("login").classList.add("hidden");
-        $("dash").classList.remove("hidden");
-        $("logoutBtn").classList.remove("hidden");
-        $("welcome").textContent = "Signed in as " + USER_EMAIL;
-
-        await loadVehicles();
-
-    } catch (error) {
-        showMessage(error.message || String(error));
-    } finally {
-        $("loginBtn").disabled = false;
-        $("loginBtn").textContent = "Login";
-    }
-};
-
-
-// FORGOT PASSWORD
-
-$("resetBtn").onclick = async function() {
-    const email = $("email").value.trim();
-
-    if (!email) {
-        showMessage("Enter your email first.");
-        return;
-    }
-
-    $("resetBtn").disabled = true;
-
-    try {
-        const url =
-        `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(API_KEY)}`;
-
-        const response = await fetchTimeout(url, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                requestType: "PASSWORD_RESET",
-                email
-            })
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok)
-            throw new Error(data.error?.message || "Reset failed.");
-
-        showMessage("Password reset email sent. Check your inbox.", true);
-
-    } catch (error) {
-        showMessage(error.message || String(error));
-    } finally {
-        $("resetBtn").disabled = false;
-    }
+ }catch(e){
+   show("Login failed:\n"+(e.message||String(e)));
+ }finally{
+   $("loginBtn").disabled=false;
+   $("loginBtn").textContent="Login";
+ }
 };
 
 
 // LOGOUT
 
-$("logoutBtn").onclick = function() {
-    ID_TOKEN = "";
-    USER_EMAIL = "";
-    allVehicles = [];
-
-    $("dash").classList.add("hidden");
-    $("login").classList.remove("hidden");
-    $("logoutBtn").classList.add("hidden");
-    $("password").value = "";
-
-    showMessage("Logged out successfully.", true);
+$("logoutBtn").onclick=()=>{
+ ID_TOKEN="";
+ USER_EMAIL="";
+ allVehicles=[];
+ $("dash").classList.add("hidden");
+ $("login").classList.remove("hidden");
+ $("password").value="";
+ show("Logged out.",true);
 };
 
 
 // LOAD VEHICLES
 
-async function loadVehicles() {
-    $("vehicles").innerHTML =
-        '<div class="empty">Loading vehicles...</div>';
+async function loadVehicles(){
 
-    try {
-        let documents = [];
-        let pageToken = "";
+ $("vehicles").innerHTML="<p>Loading vehicles...</p>";
 
-        do {
-            let url =
-            `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/vehicles?pageSize=300`;
+ try{
 
-            if (pageToken)
-                url += "&pageToken=" + encodeURIComponent(pageToken);
+  const url=`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/vehicles`;
 
-            const response = await fetchTimeout(url, {
-                headers: {Authorization: "Bearer " + ID_TOKEN}
-            });
+  const r=await fetchTimeout(url,{
+   headers:{Authorization:"Bearer "+ID_TOKEN}
+  });
 
-            const data = await response.json().catch(() => ({}));
+  const data=await r.json().catch(()=>({}));
 
-            if (!response.ok)
-                throw new Error(data.error?.message || "Firestore loading failed.");
+  if(!r.ok)
+   throw new Error(data?.error?.message||("Firestore HTTP "+r.status));
 
-            documents.push(...(data.documents || []));
-            pageToken = data.nextPageToken || "";
+  const docs=data.documents||[];
 
-        } while (pageToken);
+  let pending=0,approved=0,rejected=0;
 
-        allVehicles = documents.map(doc => {
-            const fields = doc.fields || {};
-            const vehicle = {};
+  const arr=docs.map(x=>{
 
-            for (const key in fields)
-                vehicle[key] = val(fields[key]);
+   const f=x.fields||{};
+   const v={};
 
-            return {
-                id: doc.name.split("/").pop(),
-                v: vehicle,
-                status: String(vehicle.status || "pending").toLowerCase()
-            };
-        });
+   for(const k in f)v[k]=val(f[k]);
 
-        updateCounts();
-        renderVehicles();
+   const status=String(v.status||"pending").toLowerCase();
 
-        dashboardMessage("Vehicles loaded successfully.", true);
+   if(status==="approved")approved++;
+   else if(status==="rejected")rejected++;
+   else pending++;
 
-    } catch (error) {
-        $("vehicles").innerHTML =
-            '<div class="empty">' + esc(error.message) + '</div>';
-        dashboardMessage(error.message);
+   return {
+    id:x.name.split("/").pop(),
+    v,
+    status
+   };
+
+  });
+
+  $("pending").textContent=pending;
+  $("approved").textContent=approved;
+  $("rejected").textContent=rejected;
+
+  allVehicles=arr;
+
+  showFilter(currentFilter);
+
+ }catch(e){
+
+  $("vehicles").innerHTML=
+   "<p class='err'>Could not load vehicles:<br>"+esc(e.message||String(e))+"</p>";
+
+ }
+
+}
+
+
+// FILTER VEHICLES
+
+window.showFilter=(filter)=>{
+
+ currentFilter=filter;
+
+ const visible=allVehicles.filter(x=>
+  filter==="all"||x.status===filter
+ );
+
+ $("vehicles").innerHTML=visible.length
+ ?visible.map(x=>`
+
+  <div class="item">
+
+   <span class="badge">${esc(x.status)}</span>
+
+   <h2>${esc(x.v.title||x.v.vehicleName||x.v.name||x.v.brand||"Vehicle")}</h2>
+
+   <div class="detail">${detailsHTML(x.v)}</div>
+
+   <div class="media-title">📷 Photos & Documents</div>
+
+   ${mediaHTML(x.v)}
+
+   <details style="margin-top:14px">
+    <summary>Show all Firestore fields</summary>
+    <div class="raw">${esc(JSON.stringify(x.v,null,2))}</div>
+   </details>
+
+   ${x.status==="pending"?`
+    <div class="actions">
+     <button class="approve" onclick="setStatus('${esc(x.id)}','approved')">Approve</button>
+     <button class="reject" onclick="setStatus('${esc(x.id)}','rejected')">Reject</button>
+    </div>
+   `:""}
+
+   ${x.status==="approved"?`
+    <div class="actions">
+     <button style="background:#b45309" onclick="removeFromBuyer('${esc(x.id)}')">
+      Remove from Buyer (Sold)
+     </button>
+    </div>
+   `:""}
+
+  </div>
+
+ `).join("")
+ :"<p>No "+esc(filter==="all"?"":" "+filter)+" vehicles found.</p>";
+
+};
+
+
+// DASHBOARD CARD FILTERS
+
+$("pendingCard").onclick=()=>showFilter("pending");
+$("approvedCard").onclick=()=>showFilter("approved");
+$("rejectedCard").onclick=()=>showFilter("rejected");
+
+
+// MARK SOLD
+
+window.removeFromBuyer=async(id)=>{
+
+ if(!confirm("Mark this vehicle as SOLD and remove it from the Buyer app?"))
+  return;
+
+ await setStatus(id,"sold");
+
+};
+
+
+// UPDATE VEHICLE STATUS
+
+window.setStatus=async(id,status)=>{
+
+ try{
+
+  const url=
+  `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/vehicles/${encodeURIComponent(id)}?updateMask.fieldPaths=status&updateMask.fieldPaths=reviewedBy&updateMask.fieldPaths=reviewedAt`;
+
+  const body={
+   fields:{
+    status:{stringValue:status},
+    reviewedBy:{stringValue:USER_EMAIL},
+    reviewedAt:{
+     timestampValue:new Date().toISOString()
     }
-}
+   }
+  };
 
+  const r=await fetchTimeout(url,{
+   method:"PATCH",
+   headers:{
+    "Authorization":"Bearer "+ID_TOKEN,
+    "Content-Type":"application/json"
+   },
+   body:JSON.stringify(body)
+  });
 
-// UPDATE COUNTS
+  const data=await r.json().catch(()=>({}));
 
-function updateCounts() {
-    const count = status =>
-        allVehicles.filter(x => x.status === status).length;
+  if(!r.ok)
+   throw new Error(data?.error?.message||("HTTP "+r.status));
 
-    $("pendingCount").textContent = count("pending");
-    $("approvedCount").textContent = count("approved");
-    $("rejectedCount").textContent = count("rejected");
-    $("soldCount").textContent = count("sold");
-}
+  alert("Vehicle updated successfully: "+status);
 
+  await loadVehicles();
 
-// VEHICLE DETAILS
+ }catch(e){
 
-function detailsHTML(v) {
-    const keys = [
-        "type", "brand", "model", "title", "year",
-        "km", "kmDriven", "colour", "location",
-        "city", "amount", "price", "sellerName",
-        "sellerPhone", "sellerEmail", "notes"
-    ];
+  alert("Update failed: "+(e.message||String(e)));
 
-    return keys
-        .filter(k => v[k] !== undefined && v[k] !== null && v[k] !== "")
-        .map(k => {
-            let value = v[k];
-            if (typeof value === "object")
-                value = JSON.stringify(value);
+ }
 
-            return `<div><b>${esc(k)}:</b> ${esc(value)}</div>`;
-        }).join("") || "<div>No vehicle details found.</div>";
-}
-
-
-// MEDIA DISPLAY
-
-function flatten(value, path = "", output = []) {
-    if (Array.isArray(value)) {
-        value.forEach((item, index) =>
-            flatten(item, path ? `${path}[${index}]` : `[${index}]`, output)
-        );
-    } else if (value && typeof value === "object") {
-        for (const key in value)
-            flatten(value[key], path ? `${path}.${key}` : key, output);
-    } else {
-        output.push({key: path, value});
-    }
-
-    return output;
-}
-
-function mediaHTML(vehicle) {
-    const items = flatten(vehicle).filter(item => {
-        return typeof item.value === "string" &&
-            /^https?:\/\//i.test(item.value) &&
-            /photo|image|picture|document|file|url|media|upload|front|back/i.test(item.key);
-    });
-
-    if (!items.length)
-        return '<p class="note">No photo or document links found.</p>';
-
-    return `<div class="media-grid">
-        ${items.map(item => {
-            const url = esc(item.value);
-            const isImage =
-                /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(item.value) ||
-                /photo|image|picture/i.test(item.key);
-
-            return `<div class="media">
-                <b>${esc(item.key)}</b>
-                ${isImage ? `<img src="${url}" alt="Vehicle photo"
-                    onerror="this.style.display='none'">` : ""}
-                <a href="${url}" target="_blank" rel="noopener">Open file</a>
-            </div>`;
-        }).join("")}
-    </div>`;
-}
-
-
-// FILTERS
-
-function setFilter(filter) {
-    currentFilter = filter;
-
-    document.querySelectorAll("[data-filter]").forEach(button => {
-        button.classList.toggle("active", button.dataset.filter === filter);
-    });
-
-    renderVehicles();
-}
-
-document.querySelectorAll("[data-filter]").forEach(button => {
-    button.addEventListener("click", () => setFilter(button.dataset.filter));
-});
-
-$("search").addEventListener("input", renderVehicles);
-
-$("refreshBtn").onclick = loadVehicles;
-
-
-// RENDER VEHICLES
-
-function renderVehicles() {
-    const search = $("search").value.toLowerCase().trim();
-    const list = $("vehicles");
-
-    const filtered = allVehicles.filter(item => {
-        const statusMatch =
-            currentFilter === "all" || item.status === currentFilter;
-
-        const searchText = [
-            item.v.brand,
-            item.v.model,
-            item.v.type,
-            item.v.location,
-            item.v.sellerName,
-            item.v.sellerPhone
-        ].join(" ").toLowerCase();
-
-        return statusMatch && searchText.includes(search);
-    });
-
-    list.innerHTML = "";
-
-    if (!filtered.length) {
-        list.innerHTML =
-            `<div class="empty">No ${esc(currentFilter)} vehicles found.</div>`;
-        return;
-    }
-
-    filtered.forEach(item => {
-        const v = item.v;
-        const title =
-            [v.brand, v.model].filter(Boolean).join(" ") ||
-            v.title || v.vehicleName || "Vehicle";
-
-        const card = document.createElement("div");
-        card.className = "item";
-
-        card.innerHTML = `
-            <span class="badge ${esc(item.status)}">${esc(item.status)}</span>
-            <h2>${esc(title)}</h2>
-            <div class="detail">${detailsHTML(v)}</div>
-            <div class="media-title">📷 Photos & Documents</div>
-            ${mediaHTML(v)}
-            <details style="margin-top:14px">
-                <summary>Show all Firestore fields</summary>
-                <div class="raw">${esc(JSON.stringify(v, null, 2))}</div>
-            </details>
-            <div class="actions"></div>
-        `;
-
-        const actions = card.querySelector(".actions");
-
-        if (item.status === "pending") {
-            addAction(actions, "Approve", "approve", item.id, "approved");
-            addAction(actions, "Reject", "reject", item.id, "rejected");
-        }
-
-        if (item.status === "approved") {
-            addAction(actions, "Mark Sold", "sold-btn", item.id, "sold");
-            addAction(actions, "Reject", "reject", item.id, "rejected");
-        }
-
-        if (item.status === "rejected" || item.status === "sold") {
-            addAction(actions, "Approve Again", "restore", item.id, "approved");
-        }
-
-        list.appendChild(card);
-    });
-}
-
-
-// ACTION BUTTON
-
-function addAction(container, label, className, id, status) {
-    const button = document.createElement("button");
-    button.textContent = label;
-    button.className = className;
-    button.onclick = () => updateStatus(id, status);
-    container.appendChild(button);
-}
-
-
-// UPDATE FIRESTORE STATUS
-
-async function updateStatus(id, status) {
-    const labels = {
-        approved: "APPROVE",
-        rejected: "REJECT",
-        sold: "MARK AS SOLD"
-    };
-
-    if (!confirm("Are you sure you want to " + labels[status] + " this vehicle?"))
-        return;
-
-    dashboardMessage("Updating vehicle...");
-
-    try {
-        const params = new URLSearchParams();
-        params.append("updateMask.fieldPaths", "status");
-        params.append("updateMask.fieldPaths", "reviewedBy");
-        params.append("updateMask.fieldPaths", "reviewedAt");
-
-        const url =
-        `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/vehicles/${encodeURIComponent(id)}?${params.toString()}`;
-
-        const body = {
-            fields: {
-                status: {stringValue: status},
-                reviewedBy: {stringValue: USER_EMAIL},
-                reviewedAt: {
-                    timestampValue: new Date().toISOString()
-                }
-            }
-        };
-
-        const response = await fetchTimeout(url, {
-            method: "PATCH",
-            headers: {
-                Authorization: "Bearer " + ID_TOKEN,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(body)
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok)
-            throw new Error(data.error?.message || "Firestore update failed.");
-
-        dashboardMessage("Vehicle updated to " + status + ".", true);
-
-        await loadVehicles();
-
-    } catch (error) {
-        dashboardMessage("Update failed: " + error.message);
-    }
-}
+};
 
 </script>
 </body>
-        </html>
-         
+</html>
